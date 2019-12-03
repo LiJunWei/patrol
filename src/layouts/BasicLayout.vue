@@ -31,7 +31,9 @@
         </a-layout-footer>
       </a-layout>
     </a-layout>
+    <Authorized :authority="['admin']">
     <SettingDrawer />
+    </Authorized>
   </div>
 </template>
 

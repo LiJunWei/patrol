@@ -1,7 +1,10 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
+import findLast from "lodash/findLast";
+import {notification} from "ant-design-vue";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css";
+import { check, isLogin } from "./utils/auth";
 
 Vue.use(VueRouter);
 
@@ -32,7 +35,7 @@ const routes = [
   },
   {
     path: "/",
-    // meta: { authority: ["user", "admin"] },
+    meta: { authority: ["user", "admin"] },
     component: () =>
       import(/* webpackChunkName: "layout" */ "./layouts/BasicLayout"),
     children: [
@@ -63,7 +66,7 @@ const routes = [
         path: "/form",
         name: "form",
         component: { render: h => h("router-view") },
-        meta: { icon: "form", title: "表单" },
+        meta: { icon: "form", title: "表单", authority: ["admin"] },
         children: [
           {
             path: "/form/basic-form",
@@ -113,6 +116,50 @@ const routes = [
         ]
       }
     ]
+  },
+  {
+    path: "/exception",
+    name: "exception",
+    component: { render: h => h("router-view") },
+    redirect: "/exception/403",
+    meta: { title: "异常页", icon: "warning", authority: ["admin"] },
+    children: [
+      {
+        path: "/exception/403",
+        name: "exception403",
+        component: () =>
+          import(/* webpackChunkName: "exception" */ "@/views/Exception/403"),
+        meta: { title: "403" }
+      },
+      {
+        path: "/exception/404",
+        name: "exception404",
+        component: () =>
+          import(/* webpackChunkName: "exception" */ "@/views/Exception/404"),
+        meta: { title: "404" }
+      },
+      {
+        path: "/exception/500",
+        name: "exception500",
+        component: () =>
+          import(/* webpackChunkName: "exception" */ "@/views/Exception/500"),
+        meta: { title: "500" }
+      }
+    ]
+  },
+  {
+    path: "/403",
+    name: "403",
+    hideInMenu: true,
+    component: () =>
+      import(/* webpackChunkName: "exception" */ "@/views/Exception/403")
+  },
+  {
+    path: "*",
+    name: "404",
+    hideInMenu: true,
+    component: () =>
+      import(/* webpackChunkName: "exception" */ "@/views/Exception/404")
   }
 ];
 
@@ -125,6 +172,24 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   if (to.path !== from.path) {
     NProgress.start();
+  }
+  const record = findLast(to.matched, record => record.meta.authority);
+  if (record && !check(record.meta.authority)) {
+    if (!isLogin() && to.path !== "/user/login") {
+      next({
+        path: "/user/login"
+      });
+    } else if (to.path !== "/403") {
+        notification.error({
+            message: '403',
+            description:
+            '你没有权限访问，请联系管理员。',
+        });
+        next({
+            path: "/403"
+        });
+    }
+    NProgress.done();
   }
   next();
 });
