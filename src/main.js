@@ -5,6 +5,9 @@ import store from "./store";
 import { Button, Layout, Icon, Drawer, Radio, Menu } from "ant-design-vue";
 import Authorized from "./components/Authorized";
 
+// process.env.MOCK && require("./mock/mock.js");
+require("./mock/mock.js");
+
 Vue.config.productionTip = false;
 Vue.use(Button);
 Vue.use(Layout);
@@ -12,7 +15,7 @@ Vue.use(Icon);
 Vue.use(Drawer);
 Vue.use(Radio);
 Vue.use(Menu);
-Vue.component("Authorized",Authorized);
+Vue.component("Authorized", Authorized);
 
 new Vue({
   router,
